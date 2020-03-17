@@ -1,4 +1,4 @@
-package com.example.model;
+package com.example.addressbook.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.Singular;
-import lombok.With;
 import org.eclipse.microprofile.graphql.Id;
 import org.eclipse.microprofile.graphql.Type;
 

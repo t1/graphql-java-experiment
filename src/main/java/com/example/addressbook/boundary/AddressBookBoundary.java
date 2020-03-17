@@ -1,7 +1,7 @@
-package com.example.boundary;
+package com.example.addressbook.boundary;
 
-import com.example.model.Address;
-import com.example.model.Person;
+import com.example.addressbook.model.Address;
+import com.example.addressbook.model.Person;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.graphql.DefaultValue;
 import org.eclipse.microprofile.graphql.GraphQLApi;
@@ -15,26 +15,28 @@ import javax.ws.rs.Produces;
 import java.io.InputStream;
 import java.util.Map;
 
-import static com.example.model.EmailAddress.email;
-import static com.example.model.PhoneNumber.phoneNumber;
+import static com.example.addressbook.model.EmailAddress.email;
+import static com.example.addressbook.model.PhoneNumber.phoneNumber;
 import static javax.ws.rs.core.MediaType.TEXT_HTML;
 
 @Slf4j
 @Path("/")
 @GraphQLApi
-public class Boundary {
+public class AddressBookBoundary {
     private static final Person JANE = Person.builder()
         .id("1")
         .firstName("Jane")
         .lastName("Doe")
         .age(73)
         .address(Address.builder()
+            .id("101")
             .houseNumber("12345")
             .street("Main Street")
             .zipCode("55555")
             .city("Demo City")
             .build())
         .address(Address.builder()
+            .id("102")
             .houseNumber("6789")
             .street("Side Street")
             .zipCode("66666")
@@ -51,6 +53,7 @@ public class Boundary {
         .lastName("Doe")
         .age(59)
         .address(Address.builder()
+            .id("101")
             .houseNumber("12345")
             .street("Main Street")
             .zipCode("55555")
@@ -60,7 +63,7 @@ public class Boundary {
         .phoneNumber(phoneNumber("+49721123456"))
         .build();
 
-    private static final Map<String, Person> REPOSITORY = Map.of(JANE.getId(), JANE, JOE.getId(), JOE);
+    public static final Map<String, Person> REPOSITORY = Map.of(JANE.getId(), JANE, JOE.getId(), JOE);
 
     public @GET @Query Person person(@DefaultValue String id) {
         log.info("person({})", id);
@@ -79,16 +82,8 @@ public class Boundary {
         return person;
     }
 
-    // @SuppressWarnings("unused")
-    // public List<Score> scores(@Source Person person) {
-    //     return asList(
-    //         new Score().withId("111").withName("Driving").withScore(98),
-    //         new Score().withId("222").withName("Math").withScore(76)
-    //     );
-    // }
-
     @Path("/graphiql.html") @Produces(TEXT_HTML)
     public @GET InputStream graphiql() {
-        return Boundary.class.getResourceAsStream("/graphiql.html");
+        return AddressBookBoundary.class.getResourceAsStream("/graphiql.html");
     }
 }
