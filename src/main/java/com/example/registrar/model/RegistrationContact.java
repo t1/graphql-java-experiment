@@ -11,7 +11,7 @@ import static lombok.AccessLevel.PUBLIC;
 
 @Builder @Getter @Setter
 @AllArgsConstructor(access = PUBLIC)
-public class Contact {
+public class RegistrationContact {
     private String personId;
     private Person person;
     private String addressId;

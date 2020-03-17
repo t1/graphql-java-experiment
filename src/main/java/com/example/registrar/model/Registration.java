@@ -8,5 +8,5 @@ import lombok.Setter;
 public class Registration {
     String id;
     String domain;
-    Contact admin;
+    RegistrationContact admin;
 }

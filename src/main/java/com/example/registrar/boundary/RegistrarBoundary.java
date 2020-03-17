@@ -1,18 +1,19 @@
 package com.example.registrar.boundary;
 
-import com.example.addressbook.boundary.AddressBookBoundary;
-import com.example.addressbook.model.Address;
+import com.example.addressbook.model.AddressBook;
 import com.example.addressbook.model.Person;
-import com.example.registrar.model.Contact;
+import com.example.registrar.model.RegistrationContact;
 import com.example.registrar.model.Registration;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
 
+import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 @Path("/registrars")
 @GraphQLApi
@@ -20,7 +21,7 @@ public class RegistrarBoundary {
     private static final Registration JANE_ORG = Registration.builder()
         .id("10001")
         .domain("jane.org")
-        .admin(Contact.builder()
+        .admin(RegistrationContact.builder()
             .personId("1")
             .addressId("101")
             .email("jane.doe@example.com")
@@ -32,6 +33,8 @@ public class RegistrarBoundary {
         JANE_ORG.getId(), JANE_ORG
     );
 
+    @Inject AddressBook addressBook;
+
     @Path("/{id}")
     public @GET @Query Registration registration(@PathParam("id") String id) {
         Registration registration = REGISTRY.get(id);
@@ -39,21 +42,20 @@ public class RegistrarBoundary {
         return registration;
     }
 
-    private void resolve(Contact contact) {
-        Person person = AddressBookBoundary.REPOSITORY.get(contact.getPersonId());
+    private void resolve(RegistrationContact contact) {
+        Person person = addressBook.getPersonById(contact.getPersonId());
         contact.setPerson(person);
-        contact.setAddress(find(contact.getAddressId(), person.getAddresses()));
+        contact.setAddress(find(person.getAddresses(), address -> address.getId().equals(contact.getAddressId())));
     }
 
-    private Address find(String addressId, List<Address> addresses) {
-        return addresses.stream().filter(address -> address.getId().equals(addressId)).findAny()
-            .orElse(null);
+    private static <T> T find(List<T> list, Predicate<T> predicate) {
+        return list.stream().filter(predicate).findAny().orElse(null);
     }
 
     // TODO this would be nice to use, but it throws a NPE in ReflectionDataFetcher...
     //  seems to be related to the arjuna scanning. Workaround: #resolve extended fields by hand
     // @SuppressWarnings("unused")
-    // public static Person person(@Source Contact contact) {
-    //     return AddressBookBoundary.REPOSITORY.get(contact.getPersonId());
+    // public Person person(@Source Contact contact) {
+    //     return addressBook.getPersonById(contact.getPersonId());
     // }
 }
