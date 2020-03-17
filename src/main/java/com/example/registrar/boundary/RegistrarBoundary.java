@@ -50,6 +50,8 @@ public class RegistrarBoundary {
             .orElse(null);
     }
 
+    // TODO this would be nice to use, but it throws a NPE in ReflectionDataFetcher...
+    //  seems to be related to the arjuna scanning. Workaround: #resolve extended fields by hand
     // @SuppressWarnings("unused")
     // public static Person person(@Source Contact contact) {
     //     return AddressBookBoundary.REPOSITORY.get(contact.getPersonId());
