@@ -1,9 +1,9 @@
 package com.example.boundary;
 
 import com.example.model.Address;
-import com.example.model.EmailAddress;
 import com.example.model.Person;
-import com.example.model.PhoneNumber;
+import lombok.extern.slf4j.Slf4j;
+import org.eclipse.microprofile.graphql.DefaultValue;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Query;
@@ -15,56 +15,57 @@ import javax.ws.rs.Produces;
 import java.io.InputStream;
 import java.util.Map;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
+import static com.example.model.EmailAddress.email;
+import static com.example.model.PhoneNumber.phoneNumber;
 import static javax.ws.rs.core.MediaType.TEXT_HTML;
 
+@Slf4j
 @Path("/")
 @GraphQLApi
 public class Boundary {
-    private static final Person JANE = new Person()
-        .withId("1")
-        .withFirstName("Jane")
-        .withLastName("Doe")
-        .withAge(73)
-        .withAddresses(asList(new Address()
-                .withHouseNumber("12345")
-                .withStreet("Main Street")
-                .withZipCode("55555")
-                .withCity("Demo City")
-            , new Address()
-                .withHouseNumber("6789")
-                .withStreet("Side Street")
-                .withZipCode("66666")
-                .withCity("Doe Town")
-        ))
-        .withEmails(asList(
-            new EmailAddress("jane.doe@example.com"),
-            new EmailAddress("jdoe@example.com")
-        ))
-        .withPhoneNumbers(asList(
-            new PhoneNumber("+49721123456"),
-            new PhoneNumber("+49721888000")
-        ));
-    private static final Person JOE = new Person()
-        .withId("2")
-        .withFirstName("Joe")
-        .withLastName("Doe")
-        .withAge(59)
-        .withAddresses(singletonList(new Address()
-            .withHouseNumber("12345")
-            .withStreet("Main Street")
-            .withZipCode("55555")
-            .withCity("Demo City")
-        ))
-        .withEmails(singletonList(new EmailAddress("joe.doe@example.com")))
-        .withPhoneNumbers(singletonList(
-            new PhoneNumber("+49721123456")
-        ));
+    private static final Person JANE = Person.builder()
+        .id("1")
+        .firstName("Jane")
+        .lastName("Doe")
+        .age(73)
+        .address(Address.builder()
+            .houseNumber("12345")
+            .street("Main Street")
+            .zipCode("55555")
+            .city("Demo City")
+            .build())
+        .address(Address.builder()
+            .houseNumber("6789")
+            .street("Side Street")
+            .zipCode("66666")
+            .city("Doe Town")
+            .build())
+        .email(email("jane.doe@example.com"))
+        .email(email("jdoe@example.com"))
+        .phoneNumber(phoneNumber("+49721123456"))
+        .phoneNumber(phoneNumber("+49721888000"))
+        .build();
+    private static final Person JOE = Person.builder()
+        .id("2")
+        .firstName("Joe")
+        .lastName("Doe")
+        .age(59)
+        .address(Address.builder()
+            .houseNumber("12345")
+            .street("Main Street")
+            .zipCode("55555")
+            .city("Demo City")
+            .build())
+        .email(email("joe.doe@example.com"))
+        .phoneNumber(phoneNumber("+49721123456"))
+        .build();
 
     private static final Map<String, Person> REPOSITORY = Map.of(JANE.getId(), JANE, JOE.getId(), JOE);
 
-    public @GET @Query Person person(String id) {
+    public @GET @Query Person person(@DefaultValue String id) {
+        log.info("person({})", id);
+        if (id == null || id.isEmpty())
+            id = JANE.getId();
         Person person = REPOSITORY.get(id);
         if (person == null)
             throw new NotFoundException("no person with id " + id + " found");

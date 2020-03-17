@@ -1,16 +1,16 @@
 package com.example.model;
 
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.With;
+import org.eclipse.microprofile.graphql.Id;
 import org.eclipse.microprofile.graphql.Type;
 
 @Type
-@AllArgsConstructor @NoArgsConstructor
-@Getter @Setter @With
+@Builder
+@Getter @Setter
 public class Address {
+    private @Id String id;
     private String street;
     private String houseNumber;
     private String zipCode;
