@@ -2,8 +2,8 @@ package com.example.registrar.boundary;
 
 import com.example.addressbook.model.AddressBook;
 import com.example.addressbook.model.Person;
-import com.example.registrar.model.RegistrationContact;
 import com.example.registrar.model.Registration;
+import com.example.registrar.model.RegistrationContact;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
 
@@ -55,7 +55,7 @@ public class RegistrarBoundary {
     // TODO this would be nice to use, but it throws a NPE in ReflectionDataFetcher...
     //  seems to be related to the arjuna scanning. Workaround: #resolve extended fields by hand
     // @SuppressWarnings("unused")
-    // public Person person(@Source Contact contact) {
+    // public Person person(@Source RegistrationContact contact) {
     //     return addressBook.getPersonById(contact.getPersonId());
     // }
 }

@@ -1,5 +1,6 @@
 package it;
 
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.rest.client.RestClientBuilder;
 
 import javax.json.Json;
@@ -22,6 +23,7 @@ import java.util.stream.Stream;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
+@Slf4j
 public class GraphQlClient {
 
     public static <T> T graphQlClient(Class<T> apiClass) {
@@ -29,14 +31,10 @@ public class GraphQlClient {
     }
 
     public static Object invoke(Object proxy, Method method, Object[] args) {
-        GraphQlApi api = RestClientBuilder.newBuilder()
-            .baseUri(URI.create("http://localhost:8080/graphql-java-experiment"))
-            .build(GraphQlApi.class);
+        String requestString = requestString(method, args);
 
-        JsonObjectBuilder request = Json.createObjectBuilder();
-        request.add("query", "{ " + query(method, args) + " { " + fields(method.getReturnType()) + " }}");
-
-        String responseString = api.post(request.build().toString());
+        log.info("request graphql: {}", requestString);
+        String responseString = API.post(requestString);
 
         JsonObject responseJson = Json.createReader(new StringReader(responseString)).readObject();
         if (responseJson.isNull("data")) {
@@ -46,9 +44,29 @@ public class GraphQlClient {
         return JSONB.fromJson(data.getJsonObject(method.getName()).toString(), method.getReturnType());
     }
 
+    private static String requestString(Method method, Object[] args) {
+        JsonObjectBuilder request = Json.createObjectBuilder();
+        request.add("query", "{ " + query(method, args) + " { " + fields(method.getReturnType()) + " }}");
+        return request.build().toString();
+    }
+
     private static String fields(Class<?> type) {
         // TODO this would have to be smarter
-        return Stream.of(type.getDeclaredFields()).map(Field::getName).collect(Collectors.joining(" "));
+        return Stream.of(type.getDeclaredFields())
+            .map(GraphQlClient::field)
+            .collect(Collectors.joining(" "));
+    }
+
+    private static String field(Field field) {
+        if (isScalar(field))
+            return field.getName();
+        else
+            return field.getName() + " { " + fields(field.getType()) + " }";
+    }
+
+    private static boolean isScalar(Field field) {
+        // TODO other scalar types
+        return String.class.equals(field.getType());
     }
 
     private static String query(Method method, Object[] args) {
@@ -74,6 +92,10 @@ public class GraphQlClient {
         @Produces(APPLICATION_JSON)
         @POST String post(String request);
     }
+
+    private static final GraphQlApi API = RestClientBuilder.newBuilder()
+        .baseUri(URI.create("http://localhost:8080/graphql-java-experiment"))
+        .build(GraphQlApi.class);
 
     private static final Jsonb JSONB = JsonbBuilder.create();
 }
