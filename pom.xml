@@ -88,12 +88,14 @@
             <version>1.18.12</version>
             <scope>provided</scope>
         </dependency>
+<!--
+        correct version being pulled in via smallrye. 1.0.1 got the JDK 11 fixes.
         <dependency>
             <groupId>org.eclipse.microprofile.graphql</groupId>
             <artifactId>microprofile-graphql-api</artifactId>
             <version>1.0</version>
-            <!-- not (yet) provided on WildFly -->
-        </dependency>
+             not (yet) provided on WildFly 
+        </dependency>-->
 
         <dependency>
             <groupId>io.smallrye</groupId>
@@ -101,12 +103,14 @@
             <version>${smallrye-graphql.version}</version>
             <!--<scope>runtime</scope>-->
         </dependency>
+<!--
+        Will be pulled in from above
         <dependency>
             <groupId>io.smallrye</groupId>
             <artifactId>smallrye-graphql</artifactId>
             <version>${smallrye-graphql.version}</version>
-            <!--<scope>runtime</scope>-->
-        </dependency>
+            <scope>runtime</scope>
+        </dependency>-->
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -145,4 +149,128 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+    
+    <profiles>
+        
+        <profile>
+            <id>thorntail</id>
+            
+            <properties>
+                <version.thorntail>2.6.0.Final</version.thorntail>
+            </properties>
+            
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>io.thorntail</groupId>
+                        <artifactId>bom-all</artifactId>
+                        <version>${version.thorntail}</version>
+                        <scope>import</scope>
+                        <type>pom</type>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+
+            <dependencies>
+                <dependency>
+                    <groupId>io.thorntail</groupId>
+                    <artifactId>undertow</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>io.thorntail</groupId>
+                    <artifactId>cdi</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>io.thorntail</groupId>
+                    <artifactId>microprofile-config</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>io.thorntail</groupId>
+                    <artifactId>jsonb</artifactId>
+                </dependency>
+            </dependencies>
+            
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>io.thorntail</groupId>
+                        <artifactId>thorntail-maven-plugin</artifactId>
+                        <version>${version.thorntail}</version>
+
+                        <executions>
+                            <execution>
+                                <id>1</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>package</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>2</id>
+                                <phase>post-integration-test</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        
+        <profile>
+            <id>wildfly</id>
+                    
+            <build>
+                
+                <plugins>
+        
+                    <plugin>
+                        <groupId>org.wildfly.plugins</groupId>
+                        <artifactId>wildfly-maven-plugin</artifactId>
+                        <version>2.0.2.Final</version>    
+                        <configuration>
+                            <version>19.0.0.Final</version> 
+                            <server-config>standalone-full.xml</server-config>
+                            <systemProperties>
+                                <jboss.tx.node.id>1</jboss.tx.node.id>
+                            </systemProperties>
+                            <!-- So that you can log into localhost:9990 -->
+                            <add-user>
+                                <users>
+                                    <user>
+                                        <username>admin</username>
+                                        <password>admin</password>
+                                        <groups>
+                                            <group>admin</group>
+                                        </groups>
+                                    </user>
+                                </users>
+                            </add-user>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>                                
+                            </execution>
+                        </executions>
+                    </plugin>    
+                </plugins>
+            </build>
+        </profile>
+        
+        
+        <profile>
+            <id>jdk11plus</id>
+            <activation>
+                <jdk>[11,)</jdk>
+            </activation>
+            <properties>
+                <jboss.extra.opts>--add-modules java.se</jboss.extra.opts>
+            </properties>
+        </profile>
+    </profiles>
 </project>

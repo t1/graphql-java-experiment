@@ -40,7 +40,7 @@ public class RegistrarBoundary {
     }
 
     @SuppressWarnings("unused")
-    public Person person(@Source RegistrationContact contact) {
-        return addressBook.getPersonById(contact.getPersonId());
+    public Person person(@Source Registration registration) {
+        return addressBook.getPersonById(registration.getAdmin().getPersonId());
     }
 }
