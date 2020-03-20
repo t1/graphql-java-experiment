@@ -1,5 +1,6 @@
 package com.example.registrar.boundary;
 
+import com.example.addressbook.model.Address;
 import com.example.addressbook.model.AddressBook;
 import com.example.addressbook.model.Person;
 import com.example.registrar.model.Registration;
@@ -40,7 +41,14 @@ public class RegistrarBoundary {
     }
 
     @SuppressWarnings("unused")
-    public Person person(@Source Registration registration) {
-        return addressBook.getPersonById(registration.getAdmin().getPersonId());
+    public Person person(@Source RegistrationContact contact) {
+        return addressBook.getPersonById(contact.getPersonId());
+    }
+
+    @SuppressWarnings("unused")
+    public Address address(@Source RegistrationContact contact) {
+        return addressBook.getPersonById(contact.getPersonId()).getAddresses().stream()
+            .filter(address -> address.getId().equals(contact.getAddressId()))
+            .findAny().orElseThrow();
     }
 }
