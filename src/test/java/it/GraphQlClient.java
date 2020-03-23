@@ -14,19 +14,12 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import java.io.StringReader;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Proxy;
-import java.lang.reflect.Type;
 import java.net.URI;
-import java.util.Collection;
-import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import static java.lang.reflect.Modifier.isStatic;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 @Slf4j
@@ -48,7 +41,8 @@ public class GraphQlClient {
 
     private static String request(Method method, Object[] args) {
         JsonObjectBuilder request = Json.createObjectBuilder();
-        request.add("query", "{ " + query(method, args) + " { " + fields(method.getGenericReturnType()) + " }}");
+        request.add("query", "{ " + query(method, args)
+            + " { " + fields(TypeInfo.of(method.getGenericReturnType())) + " }}");
         return request.build().toString();
     }
 
@@ -69,45 +63,22 @@ public class GraphQlClient {
         return query.toString();
     }
 
-    private static String fields(Type type) {
-        if (type instanceof Class) {
-            return fields(((Class<?>) type));
-        } else if (isCollection(type)) {
-            return fields(itemType(type));
+    private static String fields(TypeInfo type) {
+        if (type.isCollection()) {
+            return fields(type.itemType());
         } else {
-            throw new RuntimeException("unsupported generic type: " + type);
+            return type.fields()
+                .map(GraphQlClient::field)
+                .collect(Collectors.joining(" "));
         }
     }
 
-    private static Type itemType(Type type) {
-        return ((ParameterizedType) type).getActualTypeArguments()[0];
-    }
-
-    private static boolean isCollection(Type type) {
-        return type instanceof ParameterizedType
-            && Collection.class.isAssignableFrom((Class<?>) ((ParameterizedType) type).getRawType());
-    }
-
-    private static String fields(Class<?> clazz) {
-        return Stream.of(clazz.getDeclaredFields())
-            .filter(field -> !isStatic(field.getModifiers()))
-            .map(GraphQlClient::field)
-            .collect(Collectors.joining(" "));
-    }
-
-    private static String field(Field field) {
-        if (isScalar(field.getType()) || isScalarCollection(field.getGenericType())) {
+    private static String field(FieldInfo field) {
+        TypeInfo type = field.getType();
+        if (type.isScalar() || type.isCollection() && type.itemType().isScalar()) {
             return field.getName();
         } else
-            return field.getName() + " { " + fields(field.getGenericType()) + " }";
-    }
-
-    private static boolean isScalar(Type type) {
-        return SCALAR_TYPES.contains(type);
-    }
-
-    private static boolean isScalarCollection(Type type) {
-        return isCollection(type) && isScalar(itemType(type));
+            return field.getName() + " { " + fields(type) + " }";
     }
 
     private static Object fromJson(Method method, String request, String response) {
@@ -131,9 +102,5 @@ public class GraphQlClient {
         .baseUri(URI.create("http://localhost:8080/graphql-java-experiment"))
         .build(GraphQlApi.class);
 
-    private static final List<Type> SCALAR_TYPES = List.of(
-        String.class, Integer.class, int.class
-        // TODO other scalar types
-    );
     private static final Jsonb JSONB = JsonbBuilder.create();
 }
