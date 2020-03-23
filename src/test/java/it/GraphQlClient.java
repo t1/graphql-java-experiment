@@ -29,7 +29,7 @@ public class GraphQlClient {
         return apiClass.cast(Proxy.newProxyInstance(apiClass.getClassLoader(), new Class<?>[]{apiClass}, GraphQlClient::invoke));
     }
 
-    public static Object invoke(Object proxy, Method method, Object[] args) {
+    private static Object invoke(Object proxy, Method method, Object[] args) {
         String request = request(method, args);
 
         log.info("request graphql: {}", request);
