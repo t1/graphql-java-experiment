@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static it.GraphQlClient.graphQlClient;
+import static graphql.client.GraphQlClient.graphQlClient;
 import static org.assertj.core.api.BDDAssertions.then;
 
 public class SuperHeroesIT {
@@ -18,6 +18,8 @@ public class SuperHeroesIT {
         SuperHero findHeroByName(String name);
 
         Team team(String name);
+
+        List<Team> allTeams();
     }
 
     @Getter @Setter @ToString
@@ -40,11 +42,23 @@ public class SuperHeroesIT {
         then(ironMan.superPowers).containsExactly("wealth", "engineering");
     }
 
+    @Test void shouldGetAllTeams() {
+        List<Team> all = api.allTeams();
+
+        then(all.size()).isEqualTo(3);
+        thenIsAvengers(all.get(0));
+    }
+
     @Test void shouldGetTeamByName() {
         Team avengers = api.team("Avengers");
 
+        thenIsAvengers(avengers);
+    }
+
+    private void thenIsAvengers(Team avengers) {
         then(avengers.name).isEqualTo("Avengers");
         then(avengers.size).isEqualTo(3);
+        then(avengers.members.get(0).name).isEqualTo("Iron Man");
     }
 
     @Test void shouldGetSuperHeroesInOuterSpace() {

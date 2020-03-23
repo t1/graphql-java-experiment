@@ -8,9 +8,7 @@
       "engineering"
     ],
     "teamAffiliations": [
-      {
-        "name": "Avengers"
-      }
+      "Avengers"
     ]
   },
   {
@@ -24,9 +22,7 @@
       "Web-shooting"
     ],
     "teamAffiliations": [
-      {
-        "name": "Avengers"
-      }
+      "Avengers"
     ]
   },
   {
@@ -39,9 +35,7 @@
       "Dance moves"
     ],
     "teamAffiliations": [
-      {
-        "name": "Guardians of the Galaxy"
-      }
+      "Guardians of the Galaxy"
     ]
   },
   {
@@ -55,12 +49,8 @@
       "Retractable claws"
     ],
     "teamAffiliations": [
-      {
-        "name": "Avengers"
-      },
-      {
-        "name": "X-Men"
-      }
+      "Avengers",
+      "X-Men"
     ]
   }
 ]

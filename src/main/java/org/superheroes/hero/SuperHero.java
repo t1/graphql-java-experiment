@@ -1,4 +1,4 @@
-package org.superheroes.model;
+package org.superheroes.hero;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -12,5 +12,4 @@ public class SuperHero {
     private String realName;
     private String primaryLocation;
     private List<String> superPowers;
-    private List<Team> teamAffiliations;
 }

@@ -1,4 +1,4 @@
-package org.superheroes.utils;
+package org.superheroes.config;
 
 import lombok.experimental.UtilityClass;
 
@@ -7,7 +7,7 @@ import javax.ws.rs.NotFoundException;
 import java.util.List;
 
 @UtilityClass
-public class Utils {
+public class CollectionUtils {
     public static <T> T single(List<T> list, String hint) {
         switch (list.size()) {
             case 0:

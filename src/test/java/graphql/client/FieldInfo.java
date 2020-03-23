@@ -1,4 +1,4 @@
-package it;
+package graphql.client;
 
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
