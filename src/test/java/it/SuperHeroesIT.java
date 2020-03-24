@@ -5,6 +5,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.junit.jupiter.api.Test;
 
+import java.net.URI;
 import java.util.List;
 
 import static graphql.client.GraphQlClient.graphQlClient;
@@ -68,5 +69,6 @@ public class SuperHeroesIT {
         then(found.get(0).name).isEqualTo("Starlord");
     }
 
-    private final SuperHeroesApi api = graphQlClient(SuperHeroesApi.class);
+    private final SuperHeroesApi api = graphQlClient(SuperHeroesApi.class,
+        URI.create("http://localhost:8080/graphql-java-experiment/graphql"));
 }
