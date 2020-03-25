@@ -1,15 +1,14 @@
 package it;
 
+import graphql.client.GraphQlClient;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.eclipse.microprofile.graphql.Query;
 import org.junit.jupiter.api.Test;
 
-import java.net.URI;
 import java.util.List;
 
-import static graphql.client.GraphQlClient.graphQlClient;
 import static org.assertj.core.api.BDDAssertions.then;
 
 public class SuperHeroesIT {
@@ -96,6 +95,7 @@ public class SuperHeroesIT {
         then(found.get(0).name).isEqualTo("Starlord");
     }
 
-    private final SuperHeroesApi api = graphQlClient(SuperHeroesApi.class,
-        URI.create("http://localhost:8080/graphql-java-experiment/graphql"));
+    private final SuperHeroesApi api = GraphQlClient.builder(SuperHeroesApi.class)
+        .endpoint("http://localhost:8080/graphql-java-experiment/graphql")
+        .build();
 }
