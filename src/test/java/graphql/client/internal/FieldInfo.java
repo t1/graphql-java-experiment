@@ -1,4 +1,4 @@
-package graphql.client;
+package graphql.client.internal;
 
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
@@ -9,11 +9,11 @@ import static lombok.AccessLevel.PACKAGE;
 
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = PACKAGE)
-class FieldInfo {
+public class FieldInfo {
     private final Field field;
 
     public TypeInfo getType() {
-        return TypeInfo.of(field.getGenericType());
+        return new TypeInfo(field.getGenericType());
     }
 
     public String getName() { return field.getName(); }

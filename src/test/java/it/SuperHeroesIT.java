@@ -3,6 +3,7 @@ package it;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.eclipse.microprofile.graphql.Query;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
@@ -18,6 +19,9 @@ public class SuperHeroesIT {
 
         SuperHero findHeroByName(String name);
 
+        @Query("findHeroByName")
+        SuperHeroWithTeams findHeroWithTeamsByName(String name);
+
         Team team(String name);
 
         List<Team> allTeams();
@@ -30,10 +34,23 @@ public class SuperHeroesIT {
     }
 
     @Getter @Setter @ToString
+    public static class SuperHeroWithTeams {
+        private String name;
+        private List<String> superPowers;
+        private List<TeamWithoutMembers> teamAffiliations;
+    }
+
+    @Getter @Setter @ToString
     public static class Team {
         private String name;
         private int size;
         private List<SuperHero> members;
+    }
+
+    @Getter @Setter @ToString
+    public static class TeamWithoutMembers {
+        private String name;
+        private int size;
     }
 
     @Test void shouldGetIronMan() {
@@ -41,6 +58,16 @@ public class SuperHeroesIT {
 
         then(ironMan.name).isEqualTo("Iron Man");
         then(ironMan.superPowers).containsExactly("wealth", "engineering");
+    }
+
+    @Test void shouldGetIronManWithTeams() {
+        SuperHeroWithTeams ironMan = api.findHeroWithTeamsByName("Iron Man");
+
+        then(ironMan.name).isEqualTo("Iron Man");
+        then(ironMan.superPowers).containsExactly("wealth", "engineering");
+        then(ironMan.teamAffiliations).hasSize(1);
+        then(ironMan.teamAffiliations.get(0).name).isEqualTo("Avengers");
+        then(ironMan.teamAffiliations.get(0).size).isEqualTo(3);
     }
 
     @Test void shouldGetAllTeams() {

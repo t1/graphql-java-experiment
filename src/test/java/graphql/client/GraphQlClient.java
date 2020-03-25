@@ -1,5 +1,9 @@
 package graphql.client;
 
+import graphql.client.internal.FieldInfo;
+import graphql.client.internal.MethodInfo;
+import graphql.client.internal.ParameterInfo;
+import graphql.client.internal.TypeInfo;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.json.Json;
@@ -16,7 +20,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.StatusType;
 import java.io.StringReader;
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.lang.reflect.Proxy;
 import java.net.URI;
 import java.util.stream.Collectors;
@@ -39,7 +42,11 @@ public class GraphQlClient {
     }
 
     private Object invoke(Object proxy, Method method, Object[] args) {
-        String request = request(method, args);
+        return invoke(MethodInfo.of(method, args));
+    }
+
+    private Object invoke(MethodInfo method) {
+        String request = request(method);
 
         log.info("request graphql: {}", request);
         String response = post(request);
@@ -48,23 +55,19 @@ public class GraphQlClient {
         return fromJson(method, request, response);
     }
 
-    private String request(Method method, Object[] args) {
+    private String request(MethodInfo method) {
         JsonObjectBuilder request = Json.createObjectBuilder();
-        request.add("query", "{ " + query(method, args)
-            + " { " + fields(TypeInfo.of(method.getGenericReturnType())) + " }}");
+        request.add("query", "{ " + query(method)
+            + " { " + fields(method.getReturnType()) + " }}");
         return request.build().toString();
     }
 
-    private String query(Method method, Object[] args) {
+    private String query(MethodInfo method) {
         StringBuilder query = new StringBuilder(method.getName());
         if (method.getParameterCount() > 0) {
             query.append("(");
-            Parameter[] parameters = method.getParameters();
-            for (int i = 0; i < parameters.length; i++) {
-                Parameter parameter = parameters[i];
-                if (!parameter.isNamePresent())
-                    throw new GraphQlClientException("compile with -parameters to add the parameter names to the class file");
-                query.append(parameter.getName()).append(": \"").append(args[i]).append("\"");
+            for (ParameterInfo parameter : method.getParameters()) {
+                query.append(parameter.getName()).append(": \"").append(parameter.getValue()).append("\"");
             }
             query.append(")");
         }
@@ -100,14 +103,14 @@ public class GraphQlClient {
         return response.readEntity(String.class);
     }
 
-    private Object fromJson(Method method, String request, String response) {
+    private Object fromJson(MethodInfo method, String request, String response) {
         JsonObject responseJson = Json.createReader(new StringReader(response)).readObject();
         if (responseJson.isNull("data")) {
             throw new GraphQlClientException("GraphQL error: " + responseJson.getJsonArray("errors") + ":\n  " + request);
         }
         JsonObject data = responseJson.getJsonObject("data");
         JsonValue value = data.get(method.getName());
-        return JSONB.fromJson(value.toString(), method.getGenericReturnType());
+        return JSONB.fromJson(value.toString(), method.getReturnType().getNativeType());
     }
 
     private static final Client REST = ClientBuilder.newClient();

@@ -1,4 +1,4 @@
-package graphql.client;
+package graphql.client.internal;
 
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
@@ -10,14 +10,11 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static java.lang.reflect.Modifier.isStatic;
-import static lombok.AccessLevel.PRIVATE;
 
 @EqualsAndHashCode
-@RequiredArgsConstructor(access = PRIVATE)
-class TypeInfo {
+@RequiredArgsConstructor
+public class TypeInfo {
     private final Type type;
-
-    public static TypeInfo of(Type type) { return new TypeInfo(type); }
 
     public boolean isCollection() {
         if (!(type instanceof ParameterizedType)) {
@@ -47,4 +44,6 @@ class TypeInfo {
         String.class, Integer.class, int.class
         // TODO other scalar types
     );
+
+    public Type getNativeType() { return type; }
 }

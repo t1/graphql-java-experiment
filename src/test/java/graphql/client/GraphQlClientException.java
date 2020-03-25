@@ -1,5 +1,5 @@
 package graphql.client;
 
-class GraphQlClientException extends RuntimeException {
-    GraphQlClientException(String message) { super(message); }
+public class GraphQlClientException extends RuntimeException {
+    public GraphQlClientException(String message) { super(message); }
 }
