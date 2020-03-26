@@ -95,7 +95,7 @@ public class SuperHeroesIT {
         then(found.get(0).name).isEqualTo("Starlord");
     }
 
-    private final SuperHeroesApi api = GraphQlClient.builder(SuperHeroesApi.class)
+    private final SuperHeroesApi api = GraphQlClient.newBuilder()
         .endpoint("http://localhost:8080/graphql-java-experiment/graphql")
-        .build();
+        .build(SuperHeroesApi.class);
 }

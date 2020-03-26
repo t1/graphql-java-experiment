@@ -27,9 +27,7 @@ import static lombok.AccessLevel.PACKAGE;
 @RequiredArgsConstructor(access = PACKAGE)
 public class GraphQlClient {
 
-    public static <T> GraphQlClientBuilder<T> builder(Class<T> apiClass) {
-        return new GraphQlClientBuilder<>(apiClass);
-    }
+    public static <T> GraphQlClientBuilder newBuilder() { return new GraphQlClientBuilder(); }
 
     private final WebTarget target;
     private final Jsonb jsonb;
