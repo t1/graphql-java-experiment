@@ -1,6 +1,6 @@
 package it;
 
-import graphql.client.GraphQlClient;
+import com.github.t1.graphql.client.GraphQlClient;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
