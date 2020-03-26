@@ -17,8 +17,8 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.StatusType;
 import java.io.StringReader;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.joining;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static lombok.AccessLevel.PACKAGE;
@@ -27,7 +27,7 @@ import static lombok.AccessLevel.PACKAGE;
 @RequiredArgsConstructor(access = PACKAGE)
 public class GraphQlClient {
 
-    public static <T> GraphQlClientBuilder newBuilder() { return new GraphQlClientBuilder(); }
+    public static GraphQlClientBuilder newBuilder() { return new GraphQlClientBuilder(); }
 
     private final WebTarget target;
     private final Jsonb jsonb;
@@ -45,7 +45,7 @@ public class GraphQlClient {
     private String request(MethodInfo method) {
         JsonObjectBuilder request = Json.createObjectBuilder();
         request.add("query", "{ " + query(method)
-            + " { " + fields(method.getReturnType()) + " }}");
+            + " " + fields(method.getReturnType()) + "}");
         return request.build().toString();
     }
 
@@ -62,12 +62,14 @@ public class GraphQlClient {
     }
 
     private String fields(TypeInfo type) {
-        if (type.isCollection()) {
+        if (type.isScalar()) {
+            return "";
+        } else if (type.isCollection()) {
             return fields(type.itemType());
         } else {
             return type.fields()
                 .map(this::field)
-                .collect(Collectors.joining(" "));
+                .collect(joining(" ", "{", "}"));
         }
     }
 
@@ -76,7 +78,7 @@ public class GraphQlClient {
         if (type.isScalar() || type.isCollection() && type.itemType().isScalar()) {
             return field.getName();
         } else {
-            return field.getName() + " { " + fields(type) + " }";
+            return field.getName() + fields(type);
         }
     }
 
