@@ -4,36 +4,29 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.BDDMockito;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
-import java.net.URI;
 import java.util.List;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static javax.ws.rs.core.MediaType.TEXT_PLAIN_TYPE;
+import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.assertj.core.api.BDDAssertions.then;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
 
 public class GraphQlClientTest {
+
+    private final GraphQlClientTester tester = new GraphQlClientTester();
 
     interface StringApi {
         String greeting();
     }
 
     @Test void shouldCallStringQuery() {
-        StringApi api = buildGraphQlClient(StringApi.class,
-            "\"greeting\":\"dummy-greeting\"");
+        StringApi api = tester.buildClient(StringApi.class);
+        tester.returnsData("\"greeting\":\"dummy-greeting\"");
 
         String greeting = api.greeting();
 
-        then(query()).isEqualTo("greeting");
+        then(tester.query()).isEqualTo("greeting");
         then(greeting).isEqualTo("dummy-greeting");
     }
 
@@ -43,12 +36,12 @@ public class GraphQlClientTest {
     }
 
     @Test void shouldCallStringListQuery() {
-        StringListApi api = buildGraphQlClient(StringListApi.class,
-            "\"greetings\":[\"a\",\"b\"]");
+        StringListApi api = tester.buildClient(StringListApi.class);
+        tester.returnsData("\"greetings\":[\"a\",\"b\"]");
 
         List<String> greetings = api.greetings();
 
-        then(query()).isEqualTo("greetings");
+        then(tester.query()).isEqualTo("greetings");
         then(greetings).containsExactly("a", "b");
     }
 
@@ -64,12 +57,12 @@ public class GraphQlClientTest {
     }
 
     @Test void shouldCallObjectQuery() {
-        ObjectApi api = buildGraphQlClient(ObjectApi.class,
-            "\"greeting\":{\"text\":\"foo\",\"code\":5}");
+        ObjectApi api = tester.buildClient(ObjectApi.class);
+        tester.returnsData("\"greeting\":{\"text\":\"foo\",\"code\":5}");
 
         Greeting greeting = api.greeting();
 
-        then(query()).isEqualTo("greeting {text code}");
+        then(tester.query()).isEqualTo("greeting {text code}");
         then(greeting).isEqualTo(new Greeting("foo", 5));
     }
 
@@ -79,12 +72,12 @@ public class GraphQlClientTest {
     }
 
     @Test void shouldCallObjectListQuery() {
-        ObjectListApi api = buildGraphQlClient(ObjectListApi.class,
-            "\"greetings\":[{\"text\":\"a\",\"code\":1},{\"text\":\"b\",\"code\":2}]");
+        ObjectListApi api = tester.buildClient(ObjectListApi.class);
+        tester.returnsData("\"greetings\":[{\"text\":\"a\",\"code\":1},{\"text\":\"b\",\"code\":2}]");
 
         List<Greeting> greeting = api.greetings();
 
-        then(query()).isEqualTo("greetings {text code}");
+        then(tester.query()).isEqualTo("greetings {text code}");
         then(greeting).containsExactly(
             new Greeting("a", 1),
             new Greeting("b", 2));
@@ -102,55 +95,63 @@ public class GraphQlClientTest {
     }
 
     @Test void shouldCallNestedObjectQuery() {
-        NestedObjectApi api = buildGraphQlClient(NestedObjectApi.class,
-            "\"container\":{\"greeting\":{\"text\":\"a\",\"code\":1},\"count\":3}");
+        NestedObjectApi api = tester.buildClient(NestedObjectApi.class);
+        tester.returnsData("\"container\":{\"greeting\":{\"text\":\"a\",\"code\":1},\"count\":3}");
 
         Container container = api.container();
 
-        then(query()).isEqualTo("container {greeting{text code} count}");
+        then(tester.query()).isEqualTo("container {greeting{text code} count}");
         then(container).isEqualTo(new Container(
             new Greeting("a", 1), 3));
     }
 
-
-    private <T> T buildGraphQlClient(Class<T> apiClass, String data) {
-        return GraphQlClient.newBuilder()
-            .endpoint(DUMMY_URI)
-            .client(mockClient(data))
-            .build(apiClass);
+    interface ParamApi {
+        String greeting(String who);
     }
 
-    private Client mockClient(String data) {
-        Client mockClient = mock(Client.class);
-        WebTarget mockWebTarget = mock(WebTarget.class);
+    @Test void shouldCallParamQuery() {
+        ParamApi api = tester.buildClient(ParamApi.class);
+        tester.returnsData("\"greeting\":\"hi, foo\"");
 
-        given(mockClient.target(DUMMY_URI)).willReturn(mockWebTarget);
-        given(mockWebTarget.request(APPLICATION_JSON_TYPE)).willReturn(mockInvocationBuilder);
-        given(mockInvocationBuilder.post(any()))
-            .willReturn(Response.ok("{\"data\":{" + data + "}}").build());
+        String greeting = api.greeting("foo");
 
-        return mockClient;
+        then(tester.query()).isEqualTo("greeting(who: \\\"foo\\\")");
+        then(greeting).isEqualTo("hi, foo");
     }
 
-    private String query() {
-        return stripQueryContainer(captureRequestEntity());
+    interface ParamsApi {
+        String greeting(String who, int count);
     }
 
-    private String captureRequestEntity() {
-        @SuppressWarnings("unchecked") ArgumentCaptor<Entity<String>> captor = ArgumentCaptor.forClass(Entity.class);
-        BDDMockito.then(mockInvocationBuilder).should().post(captor.capture());
-        return captor.getValue().getEntity();
+    @Test void shouldCallTwoParamsQuery() {
+        ParamsApi api = tester.buildClient(ParamsApi.class);
+        tester.returnsData("\"greeting\":\"hi, foo 3\"");
+
+        String greeting = api.greeting("foo", 3);
+
+        then(tester.query()).isEqualTo("greeting(who: \\\"foo\\\", count: 3)");
+        then(greeting).isEqualTo("hi, foo 3");
     }
 
-    private String stripQueryContainer(String response) {
-        then(response).startsWith(QUERY_PREFIX).endsWith(QUERY_SUFFIX);
-        return response.substring(QUERY_PREFIX.length(), response.length() - QUERY_SUFFIX.length()).trim();
+    @Test void shouldFailStringQueryNotFound() {
+        StringApi api = tester.buildClient(StringApi.class);
+        tester.returns(Response.serverError().type(TEXT_PLAIN_TYPE).entity("failed").build());
+
+        GraphQlClientException thrown = catchThrowableOfType(api::greeting, GraphQlClientException.class);
+
+        then(tester.query()).isEqualTo("greeting");
+        then(thrown).hasMessage("expected successful status code but got 500 Internal Server Error:\n" +
+            "failed");
     }
 
+    @Test void shouldFailOnQueryError() {
+        StringApi api = tester.buildClient(StringApi.class);
+        tester.returns(Response.ok("{\"errors\":[{\"message\":\"failed\"}]}").build());
 
-    private final Invocation.Builder mockInvocationBuilder = mock(Invocation.Builder.class);
+        GraphQlClientException thrown = catchThrowableOfType(api::greeting, GraphQlClientException.class);
 
-    private static final URI DUMMY_URI = URI.create("http://dummy-endpoint");
-    private static final String QUERY_PREFIX = "{\"query\":\"{";
-    private static final String QUERY_SUFFIX = "}\"}";
+        then(tester.query()).isEqualTo("greeting");
+        then(thrown).hasMessage("GraphQL error: [{\"message\":\"failed\"}]:\n" +
+            "  {\"query\":\"{ greeting }\"}");
+    }
 }

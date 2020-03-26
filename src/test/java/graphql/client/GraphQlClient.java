@@ -52,13 +52,22 @@ public class GraphQlClient {
     private String query(MethodInfo method) {
         StringBuilder query = new StringBuilder(method.getName());
         if (method.getParameterCount() > 0) {
-            query.append("(");
-            for (ParameterInfo parameter : method.getParameters()) {
-                query.append(parameter.getName()).append(": \"").append(parameter.getValue()).append("\"");
-            }
-            query.append(")");
+            query.append(method.getParameters().stream()
+                .map(this::param)
+                .collect(joining(", ", "(", ")")));
         }
         return query.toString();
+    }
+
+    private String param(ParameterInfo parameter) {
+        StringBuilder out = new StringBuilder();
+        out.append(parameter.getName()).append(": ");
+        Object value = parameter.getValue();
+        if (value instanceof Integer)
+            out.append(value);
+        else
+            out.append("\"").append(value).append("\"");
+        return out.toString();
     }
 
     private String fields(TypeInfo type) {
@@ -75,7 +84,7 @@ public class GraphQlClient {
 
     private String field(FieldInfo field) {
         TypeInfo type = field.getType();
-        if (type.isScalar() || type.isCollection() && type.itemType().isScalar()) {
+        if (type.isCollection() && type.itemType().isScalar()) {
             return field.getName();
         } else {
             return field.getName() + fields(type);
@@ -94,9 +103,8 @@ public class GraphQlClient {
 
     private Object fromJson(MethodInfo method, String request, String response) {
         JsonObject responseJson = Json.createReader(new StringReader(response)).readObject();
-        if (responseJson.isNull("data")) {
+        if (!responseJson.containsKey("data") || responseJson.isNull("data"))
             throw new GraphQlClientException("GraphQL error: " + responseJson.getJsonArray("errors") + ":\n  " + request);
-        }
         JsonObject data = responseJson.getJsonObject("data");
         JsonValue value = data.get(method.getName());
         return jsonb.fromJson(value.toString(), method.getReturnType().getNativeType());
