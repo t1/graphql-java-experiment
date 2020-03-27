@@ -1,6 +1,9 @@
 package org.superheroes.team;
 
 import com.github.t1.graphql.client.api.GraphQlClientBuilder;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
 import org.eclipse.microprofile.graphql.Source;
@@ -18,11 +21,15 @@ public class TeamsBoundary {
     @Inject Repository repository;
 
     public interface SuperHeroesApi {
-        List<SuperHero> allHeroes();
+        List<NamedHero> allHeroes();
     }
 
-    private SuperHeroesApi superHeroesApi = GraphQlClientBuilder.newBuilder()
-        .endpoint("http://localhost:8080/graphql-java-experiment/graphql")
+    @Getter @Setter @ToString public static class NamedHero {
+        private String name;
+        private List<String> superPowers;
+    }
+
+    private final SuperHeroesApi superHeroesApi = GraphQlClientBuilder.newBuilder()
         .build(SuperHeroesApi.class);
 
     @Query public Team getTeam(String name) {
@@ -40,15 +47,15 @@ public class TeamsBoundary {
     }
 
     @SuppressWarnings("unused")
-    public List<SuperHero> members(@Source Team team) {
-        List<SuperHero> allHeroes = superHeroesApi.allHeroes();
+    public List<NamedHero> members(@Source Team team) {
+        List<NamedHero> allHeroes = superHeroesApi.allHeroes();
         return allHeroes.stream()
             .filter(hero -> teamAffiliationNames(hero).contains(team.getName()))
             .collect(toList());
     }
 
-    private List<String> teamAffiliationNames(SuperHero hero) {
-        return teamAffiliations(hero).stream().map(Team::getName).collect(toList());
+    private List<String> teamAffiliationNames(NamedHero hero) {
+        return repository.getTeamAffiliations(hero.getName()).stream().map(Team::getName).collect(toList());
     }
 
     @SuppressWarnings("unused")
