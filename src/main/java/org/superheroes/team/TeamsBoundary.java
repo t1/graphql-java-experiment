@@ -1,5 +1,6 @@
 package org.superheroes.team;
 
+import com.github.t1.graphql.client.api.GraphQlClientBuilder;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
 import org.eclipse.microprofile.graphql.Source;
@@ -15,6 +16,14 @@ import static org.superheroes.config.CollectionUtils.single;
 @GraphQLApi
 public class TeamsBoundary {
     @Inject Repository repository;
+
+    public interface SuperHeroesApi {
+        List<SuperHero> allHeroes();
+    }
+
+    private SuperHeroesApi superHeroesApi = GraphQlClientBuilder.newBuilder()
+        .endpoint("http://localhost:8080/graphql-java-experiment/graphql")
+        .build(SuperHeroesApi.class);
 
     @Query public Team getTeam(String name) {
         List<Team> teams = repository.teamsWith(team -> team.getName().equals(name));
@@ -32,7 +41,8 @@ public class TeamsBoundary {
 
     @SuppressWarnings("unused")
     public List<SuperHero> members(@Source Team team) {
-        return repository.allSuperHeroes()
+        List<SuperHero> allHeroes = superHeroesApi.allHeroes();
+        return allHeroes.stream()
             .filter(hero -> teamAffiliationNames(hero).contains(team.getName()))
             .collect(toList());
     }
