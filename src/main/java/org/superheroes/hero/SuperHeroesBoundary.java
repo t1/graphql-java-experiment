@@ -4,12 +4,14 @@ import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
 import org.superheroes.repository.Repository;
 
+import javax.ejb.Stateless;
 import javax.inject.Inject;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 import static org.superheroes.config.CollectionUtils.single;
 
+@Stateless
 @GraphQLApi
 public class SuperHeroesBoundary {
     @Inject Repository repository;

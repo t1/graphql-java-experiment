@@ -1,6 +1,6 @@
 package org.superheroes.team;
 
-import com.github.t1.graphql.client.api.GraphQlClientBuilder;
+import com.github.t1.graphql.client.api.GraphQlClientApi;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -10,16 +10,19 @@ import org.eclipse.microprofile.graphql.Source;
 import org.superheroes.hero.SuperHero;
 import org.superheroes.repository.Repository;
 
+import javax.ejb.Stateless;
 import javax.inject.Inject;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 import static org.superheroes.config.CollectionUtils.single;
 
+@Stateless
 @GraphQLApi
 public class TeamsBoundary {
     @Inject Repository repository;
 
+    @GraphQlClientApi
     public interface SuperHeroesApi {
         List<NamedHero> allHeroes();
     }
@@ -29,8 +32,7 @@ public class TeamsBoundary {
         private List<String> superPowers;
     }
 
-    private final SuperHeroesApi superHeroesApi = GraphQlClientBuilder.newBuilder()
-        .build(SuperHeroesApi.class);
+    @Inject SuperHeroesApi superHeroesApi;
 
     @Query public Team getTeam(String name) {
         List<Team> teams = repository.teamsWith(team -> team.getName().equals(name));
