@@ -1,6 +1,6 @@
 package it;
 
-import com.github.t1.graphql.client.GraphQlClient;
+import com.github.t1.graphql.client.api.GraphQlClientBuilder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -95,7 +95,7 @@ public class SuperHeroesIT {
         then(found.get(0).name).isEqualTo("Starlord");
     }
 
-    private final SuperHeroesApi api = GraphQlClient.newBuilder()
+    private final SuperHeroesApi api = GraphQlClientBuilder.newBuilder()
         .endpoint("http://localhost:8080/graphql-java-experiment/graphql")
         .build(SuperHeroesApi.class);
 }
