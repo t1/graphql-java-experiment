@@ -4,10 +4,10 @@ import com.github.t1.graphql.client.api.GraphQlClientBuilder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
 import org.junit.jupiter.api.Test;
 
-import javax.json.bind.annotation.JsonbProperty;
 import java.util.List;
 
 import static org.assertj.core.api.BDDAssertions.then;
@@ -39,7 +39,7 @@ public class SuperHeroesIT {
     @Getter @Setter @ToString
     public static class SuperHeroWithRealName {
         private String name;
-        @JsonbProperty("realName") private String secretName;
+        @Name("realName") private String secretIdentity;
     }
 
     @Getter @Setter @ToString
@@ -72,7 +72,7 @@ public class SuperHeroesIT {
         SuperHeroWithRealName spiderMan = api.findHeroWithRealNameByName("Spider Man");
 
         then(spiderMan.name).isEqualTo("Spider Man");
-        then(spiderMan.secretName).isEqualTo("Peter Parker");
+        then(spiderMan.secretIdentity).isEqualTo("Peter Parker");
     }
 
     @Test void shouldGetIronManWithTeams() {
