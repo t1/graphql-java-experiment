@@ -9,7 +9,6 @@ import java.util.List;
 @Getter @Setter @ToString
 public class SuperHero {
     private String name;
-    private String realName;
     private String primaryLocation;
     private List<String> superPowers;
 }

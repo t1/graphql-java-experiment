@@ -21,6 +21,9 @@ public class SuperHeroesIT {
         @Query("findHeroByName")
         SuperHeroWithTeams findHeroWithTeamsByName(String name);
 
+        @Query("findHeroByName")
+        SuperHeroWithRealName findHeroWithRealNameByName(String name);
+
         Team team(String name);
 
         List<Team> allTeams();
@@ -30,6 +33,12 @@ public class SuperHeroesIT {
     public static class SuperHero {
         private String name;
         private List<String> superPowers;
+    }
+
+    @Getter @Setter @ToString
+    public static class SuperHeroWithRealName {
+        private String name;
+        private String realName;
     }
 
     @Getter @Setter @ToString
@@ -57,6 +66,13 @@ public class SuperHeroesIT {
 
         then(ironMan.name).isEqualTo("Iron Man");
         then(ironMan.superPowers).containsExactly("wealth", "engineering");
+    }
+
+    @Test void shouldGetSpiderManWithRealName() {
+        SuperHeroWithRealName spiderMan = api.findHeroWithRealNameByName("Spider Man");
+
+        then(spiderMan.name).isEqualTo("Spider Man");
+        then(spiderMan.realName).isEqualTo("Peter Parker");
     }
 
     @Test void shouldGetIronManWithTeams() {

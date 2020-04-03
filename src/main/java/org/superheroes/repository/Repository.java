@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import org.superheroes.hero.SuperHero;
 import org.superheroes.team.Team;
 
@@ -22,8 +23,24 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static org.superheroes.config.CollectionUtils.single;
 
+@Slf4j
 public class Repository {
-    private static final Jsonb JSONB = JsonbBuilder.create();
+
+    private List<SuperHero> heroes;
+    private List<Team> teams;
+    private Map<String, List<Team>> teamAffiliations;
+    private Map<String, String> realNames;
+
+    @PostConstruct private void init() {
+        Type superheroListType = new ArrayList<SuperHeroData>() {}.getClass().getGenericSuperclass();
+        InputStream stream = Repository.class.getResourceAsStream("/superheroes.json");
+        List<SuperHeroData> data = JSONB.fromJson(stream, superheroListType);
+
+        this.heroes = data.stream().map(this::toSuperHero).collect(toList());
+        this.teams = allTeams(data);
+        this.teamAffiliations = this.heroes.stream().collect(toMap(SuperHero::getName, new TeamCollector(data)::teams));
+        this.realNames = data.stream().collect(toMap(SuperHeroData::getName, SuperHeroData::getRealName));
+    }
 
     @Getter @Setter @ToString
     public static class SuperHeroData {
@@ -34,20 +51,6 @@ public class Repository {
         private List<String> teamAffiliations;
 
         public Stream<String> teamAffiliations() { return teamAffiliations.stream(); }
-    }
-
-    private List<SuperHero> heroes;
-    private List<Team> teams;
-    private Map<String, List<Team>> teamAffiliations;
-
-    @PostConstruct private void init() {
-        Type superheroListType = new ArrayList<SuperHeroData>() {}.getClass().getGenericSuperclass();
-        InputStream stream = Repository.class.getResourceAsStream("/superheroes.json");
-        List<SuperHeroData> data = JSONB.fromJson(stream, superheroListType);
-
-        this.heroes = data.stream().map(this::toSuperHero).collect(toList());
-        this.teams = allTeams(data);
-        this.teamAffiliations = this.heroes.stream().collect(toMap(SuperHero::getName, new TeamCollector(data)::teams));
     }
 
     private List<Team> allTeams(List<SuperHeroData> data) {
@@ -78,7 +81,6 @@ public class Repository {
     private SuperHero toSuperHero(SuperHeroData item) {
         SuperHero superHero = new SuperHero();
         superHero.setName(item.getName());
-        superHero.setRealName(item.getRealName());
         superHero.setPrimaryLocation(item.getPrimaryLocation());
         superHero.setSuperPowers(new ArrayList<>(item.getSuperPowers()));
         return superHero;
@@ -90,6 +92,10 @@ public class Repository {
         return allSuperHeroes().filter(predicate).collect(toList());
     }
 
+    public String realNameOf(String heroName) {
+        return realNames.get(heroName);
+    }
+
     public Stream<Team> allTeams() { return teams.stream(); }
 
     public List<Team> teamsWith(Predicate<Team> predicate) {
@@ -97,4 +103,6 @@ public class Repository {
     }
 
     public List<Team> getTeamAffiliations(String superHeroName) { return teamAffiliations.get(superHeroName); }
+
+    private static final Jsonb JSONB = JsonbBuilder.create();
 }

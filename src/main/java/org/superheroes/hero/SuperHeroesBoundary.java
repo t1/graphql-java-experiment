@@ -1,7 +1,9 @@
 package org.superheroes.hero;
 
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
+import org.eclipse.microprofile.graphql.Source;
 import org.superheroes.repository.Repository;
 
 import javax.ejb.Stateless;
@@ -11,6 +13,7 @@ import java.util.List;
 import static java.util.stream.Collectors.toList;
 import static org.superheroes.config.CollectionUtils.single;
 
+@Slf4j
 @Stateless
 @GraphQLApi
 public class SuperHeroesBoundary {
@@ -31,6 +34,10 @@ public class SuperHeroesBoundary {
     @Query public SuperHero findHeroByName(String name) {
         List<SuperHero> heroes = repository.superHeroesWith(hero -> hero.getName().equals(name));
         return single(heroes, "hero named " + name);
+    }
+
+    @Query public String realName(@Source SuperHero superHero) {
+        return repository.realNameOf(superHero.getName());
     }
 
     // public SuperHero createNewHero(SuperHero newHero) {
