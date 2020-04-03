@@ -92,9 +92,7 @@ public class Repository {
         return allSuperHeroes().filter(predicate).collect(toList());
     }
 
-    public String realNameOf(String heroName) {
-        return realNames.get(heroName);
-    }
+    public String realNameOf(String heroName) { return realNames.get(heroName); }
 
     public Stream<Team> allTeams() { return teams.stream(); }
 

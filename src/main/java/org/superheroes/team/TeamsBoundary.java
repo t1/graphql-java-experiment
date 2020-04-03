@@ -1,6 +1,7 @@
 package org.superheroes.team;
 
 import com.github.t1.graphql.client.api.GraphQlClientApi;
+import com.github.t1.graphql.client.api.GraphQlClientHeader;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -11,6 +12,8 @@ import org.superheroes.hero.SuperHero;
 import org.superheroes.repository.Repository;
 
 import javax.ejb.Stateless;
+import javax.enterprise.context.RequestScoped;
+import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import java.util.List;
 
@@ -21,6 +24,10 @@ import static org.superheroes.config.CollectionUtils.single;
 @GraphQLApi
 public class TeamsBoundary {
     @Inject Repository repository;
+
+    @Produces @RequestScoped public GraphQlClientHeader authorization() {
+        return new GraphQlClientHeader("S.H.I.E.L.D.-Clearance", "TOP-SECRET");
+    }
 
     @GraphQlClientApi
     public interface SuperHeroesApi {
@@ -43,13 +50,11 @@ public class TeamsBoundary {
         return repository.allTeams().collect(toList());
     }
 
-    @SuppressWarnings("unused")
-    public int size(@Source Team team) {
+    @Query public int size(@Source Team team) {
         return members(team).size();
     }
 
-    @SuppressWarnings("unused")
-    public List<NamedHero> members(@Source Team team) {
+    @Query public List<NamedHero> members(@Source Team team) {
         List<NamedHero> allHeroes = superHeroesApi.allHeroes();
         return allHeroes.stream()
             .filter(hero -> teamAffiliationNames(hero).contains(team.getName()))
@@ -60,8 +65,7 @@ public class TeamsBoundary {
         return repository.getTeamAffiliations(hero.getName()).stream().map(Team::getName).collect(toList());
     }
 
-    @SuppressWarnings("unused")
-    public List<Team> teamAffiliations(@Source SuperHero superHero) {
+    @Query public List<Team> teamAffiliations(@Source SuperHero superHero) {
         return repository.getTeamAffiliations(superHero.getName());
     }
 }

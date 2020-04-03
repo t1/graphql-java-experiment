@@ -7,6 +7,7 @@ import lombok.ToString;
 import org.eclipse.microprofile.graphql.Query;
 import org.junit.jupiter.api.Test;
 
+import javax.json.bind.annotation.JsonbProperty;
 import java.util.List;
 
 import static org.assertj.core.api.BDDAssertions.then;
@@ -38,7 +39,7 @@ public class SuperHeroesIT {
     @Getter @Setter @ToString
     public static class SuperHeroWithRealName {
         private String name;
-        private String realName;
+        @JsonbProperty("realName") private String secretName;
     }
 
     @Getter @Setter @ToString
@@ -51,7 +52,6 @@ public class SuperHeroesIT {
     @Getter @Setter @ToString
     public static class Team {
         private String name;
-        private int size;
         private List<SuperHero> members;
     }
 
@@ -72,7 +72,7 @@ public class SuperHeroesIT {
         SuperHeroWithRealName spiderMan = api.findHeroWithRealNameByName("Spider Man");
 
         then(spiderMan.name).isEqualTo("Spider Man");
-        then(spiderMan.realName).isEqualTo("Peter Parker");
+        then(spiderMan.secretName).isEqualTo("Peter Parker");
     }
 
     @Test void shouldGetIronManWithTeams() {
@@ -100,7 +100,7 @@ public class SuperHeroesIT {
 
     private void thenIsAvengers(Team avengers) {
         then(avengers.name).isEqualTo("Avengers");
-        then(avengers.size).isEqualTo(3);
+        then(avengers.members).hasSize(3);
         then(avengers.members.get(0).name).isEqualTo("Iron Man");
     }
 
@@ -112,6 +112,5 @@ public class SuperHeroesIT {
     }
 
     private final SuperHeroesApi api = GraphQlClientBuilder.newBuilder()
-        .endpoint("http://localhost:8080/graphql-java-experiment/graphql")
         .build(SuperHeroesApi.class);
 }

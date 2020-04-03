@@ -40,17 +40,17 @@ public class SuperHeroesBoundary {
         return repository.realNameOf(superHero.getName());
     }
 
-    // public SuperHero createNewHero(SuperHero newHero) {
+    // @Mutation public SuperHero createNewHero(SuperHero newHero) {
     //     repository.addHero(newHero);
     //     return repository.getHero(newHero.getName());
     // }
 
-    // public Team addHeroToTeam(String heroName, String teamName) {
+    // @Mutation public Team addHeroToTeam(String heroName, String teamName) {
     //     return repository.getTeam(teamName)
     //         .addMembers(repository.getHero(heroName));
     // }
 
-    // public Team removeHeroFromTeam(String heroName, String teamName) {
+    // @Mutation public Team removeHeroFromTeam(String heroName, String teamName) {
     //     return repository.getTeam(teamName)
     //         .removeMembers(repository.getHero(heroName));
     // }
