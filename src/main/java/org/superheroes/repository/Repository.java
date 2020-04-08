@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static org.superheroes.config.CollectionUtils.single;
@@ -86,6 +87,26 @@ public class Repository {
         return superHero;
     }
 
+    public void addHero(SuperHero hero) {
+        removeHeroByName(hero.getName());
+        heroes.add(hero);
+    }
+
+    public SuperHero removeHeroByName(String name) {
+        List<SuperHero> existing = superHeroesWith(hero -> hero.getName().equals(name));
+        switch (existing.size()) {
+            case 0:
+                return null;
+            case 1: {
+                SuperHero hero = existing.get(0);
+                heroes.remove(hero);
+                return hero;
+            }
+            default:
+                throw new IllegalStateException("more than one hero named " + name);
+        }
+    }
+
     public Stream<SuperHero> allSuperHeroes() { return heroes.stream(); }
 
     public List<SuperHero> superHeroesWith(Predicate<SuperHero> predicate) {
@@ -100,7 +121,9 @@ public class Repository {
         return allTeams().filter(predicate).collect(toList());
     }
 
-    public List<Team> getTeamAffiliations(String superHeroName) { return teamAffiliations.get(superHeroName); }
+    public List<Team> getTeamAffiliations(String superHeroName) {
+        return teamAffiliations.getOrDefault(superHeroName, emptyList());
+    }
 
     private static final Jsonb JSONB = JsonbBuilder.create();
 }

@@ -1,9 +1,14 @@
 package it;
 
 import com.github.t1.graphql.client.api.GraphQlClientBuilder;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.Singular;
 import lombok.ToString;
+import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
 import org.junit.jupiter.api.Test;
@@ -13,6 +18,9 @@ import java.util.List;
 import static org.assertj.core.api.BDDAssertions.then;
 
 public class SuperHeroesIT {
+
+    private final SuperHeroesApi api = GraphQlClientBuilder.newBuilder()
+        .build(SuperHeroesApi.class);
 
     public interface SuperHeroesApi {
         List<SuperHero> allHeroesIn(String location);
@@ -28,12 +36,14 @@ public class SuperHeroesIT {
         Team team(String name);
 
         List<Team> allTeams();
+
+        @Mutation("createNewHero") SuperHero add(SuperHero newHero);
     }
 
-    @Getter @Setter @ToString
+    @Getter @Setter @ToString @Builder @AllArgsConstructor @NoArgsConstructor
     public static class SuperHero {
         private String name;
-        private List<String> superPowers;
+        private @Singular List<String> superPowers;
     }
 
     @Getter @Setter @ToString
@@ -111,6 +121,10 @@ public class SuperHeroesIT {
         then(found.get(0).name).isEqualTo("Starlord");
     }
 
-    private final SuperHeroesApi api = GraphQlClientBuilder.newBuilder()
-        .build(SuperHeroesApi.class);
+    @Test void shouldAddSuperHero() {
+        SuperHero created = api.add(SuperHero.builder().name("Groot").build());
+
+        then(created.name).isEqualTo("Groot");
+        then(created.superPowers).containsExactly();
+    }
 }

@@ -2,6 +2,7 @@ package org.superheroes.hero;
 
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.graphql.GraphQLApi;
+import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Query;
 import org.eclipse.microprofile.graphql.Source;
 import org.superheroes.repository.Repository;
@@ -40,10 +41,14 @@ public class SuperHeroesBoundary {
         return repository.realNameOf(superHero.getName());
     }
 
-    // @Mutation public SuperHero createNewHero(SuperHero newHero) {
-    //     repository.addHero(newHero);
-    //     return repository.getHero(newHero.getName());
-    // }
+    @Mutation public SuperHero createNewHero(SuperHero newHero) {
+        repository.addHero(newHero);
+        return findHeroByName(newHero.getName());
+    }
+
+    @Mutation public SuperHero removeHeroByName(String name) {
+        return repository.removeHeroByName(name);
+    }
 
     // @Mutation public Team addHeroToTeam(String heroName, String teamName) {
     //     return repository.getTeam(teamName)
