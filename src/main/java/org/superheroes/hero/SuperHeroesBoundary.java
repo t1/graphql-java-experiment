@@ -1,10 +1,12 @@
 package org.superheroes.hero;
 
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Query;
 import org.eclipse.microprofile.graphql.Source;
+import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.superheroes.repository.Repository;
 
 import javax.ejb.Stateless;
@@ -17,9 +19,11 @@ import static org.superheroes.config.CollectionUtils.single;
 @Slf4j
 @Stateless
 @GraphQLApi
+@Timed
 public class SuperHeroesBoundary {
     @Inject Repository repository;
 
+    @Description("returns all heroes")
     @Query public List<SuperHero> allHeroes() {
         return repository.allSuperHeroes().collect(toList());
     }
