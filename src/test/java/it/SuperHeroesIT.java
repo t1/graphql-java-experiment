@@ -1,6 +1,6 @@
 package it;
 
-import io.smallrye.graphql.client.api.GraphQlClientBuilder;
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

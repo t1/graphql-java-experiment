@@ -1,7 +1,7 @@
 package org.superheroes.team;
 
-import io.smallrye.graphql.client.api.GraphQlClientApi;
-import io.smallrye.graphql.client.api.GraphQlClientHeader;
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientHeader;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
