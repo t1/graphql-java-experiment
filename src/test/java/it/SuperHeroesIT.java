@@ -1,6 +1,8 @@
 package it;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientBuilder;
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientHeader;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,15 +14,21 @@ import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
 import org.junit.jupiter.api.Test;
+import org.superheroes.hero.ShieldClearance;
 
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.assertj.core.api.BDDAssertions.then;
+import static org.superheroes.hero.ShieldClearance.Level.SECRET;
+import static org.superheroes.hero.ShieldClearance.Level.TOP_SECRET;
 
 public class SuperHeroesIT {
 
+    private ShieldClearance.Level clearance = TOP_SECRET;
+
     private final SuperHeroesApi api = GraphQlClientBuilder.newBuilder()
-        .header("S.H.I.E.L.D.-Clearance", "TOP_SECRET")
+        .header(new GraphQlClientHeader("S.H.I.E.L.D.-Clearance", () -> clearance))
         .build(SuperHeroesApi.class);
 
     public interface SuperHeroesApi {
@@ -33,6 +41,12 @@ public class SuperHeroesIT {
 
         @Query("findHeroByName")
         SuperHeroWithRealName findHeroWithRealNameByName(String name);
+
+        @Query("findHeroByName")
+        SuperHeroWithLocation findHeroWithLocationByName(String name);
+
+        @SuppressWarnings("UnusedReturnValue")
+        SuperHeroWithLocation allHeroes();
 
         Team team(String name);
 
@@ -54,6 +68,12 @@ public class SuperHeroesIT {
     }
 
     @Getter @Setter @ToString
+    public static class SuperHeroWithLocation {
+        private String name;
+        private String currentLocation;
+    }
+
+    @Getter @Setter @ToString
     public static class SuperHeroWithTeams {
         private String name;
         private List<String> superPowers;
@@ -72,6 +92,7 @@ public class SuperHeroesIT {
         private int size;
     }
 
+
     @Test void shouldGetIronMan() {
         SuperHero ironMan = api.findHeroByName("Iron Man");
 
@@ -84,6 +105,38 @@ public class SuperHeroesIT {
 
         then(spiderMan.name).isEqualTo("Spider Man");
         then(spiderMan.secretIdentity).isEqualTo("Peter Parker");
+    }
+
+    @Test void shouldFailToGetSpiderManWithRealNameWithoutClearance() {
+        clearance = SECRET;
+
+        GraphQlClientException thrown = catchThrowableOfType(() -> api.findHeroWithRealNameByName("Spider Man"), GraphQlClientException.class);
+
+        then(thrown).hasMessageContaining("user has not the required clearance TOP_SECRET but SECRET");
+    }
+
+    @Test void shouldLocateSpiderMan() {
+        SuperHeroWithLocation spiderMan = api.findHeroWithLocationByName("Spider Man");
+
+        then(spiderMan.name).isEqualTo("Spider Man");
+        then(spiderMan.currentLocation).isEqualTo("New York, NY");
+    }
+
+    @Test void shouldFailToLocateWolverine() {
+        GraphQlClientException thrown = catchThrowableOfType(() -> api.findHeroWithLocationByName("Wolverine"), GraphQlClientException.class);
+
+        then(thrown).hasMessageContaining("Unable to determine location for Wolverine");
+    }
+
+    @Test void shouldFailToLocateAllHeroes() {
+        GraphQlClientException thrown = catchThrowableOfType(api::allHeroes, GraphQlClientException.class);
+
+        then(thrown).hasMessageContaining("Unable to determine location for Wolverine");
+        // then(thrown.getData()). somehow contains(
+        //     "{\"name\":\"Iron Man\",\"currentLocation\":\"Los Angeles, CA\"}," +
+        //     "{\"name\":\"Spider Man\",\"currentLocation\":\"New York, NY\"}," +
+        //     "{\"name\":\"Starlord\",\"currentLocation\":\"Los Angeles, CA\"}," +
+        //     "{\"name\":\"Wolverine\",\"currentLocation\":null}");
     }
 
     @Test void shouldGetIronManWithTeams() {

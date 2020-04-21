@@ -3,6 +3,7 @@ package org.superheroes.hero;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.GraphQLApi;
+import org.eclipse.microprofile.graphql.GraphQLException;
 import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Query;
 import org.eclipse.microprofile.graphql.Source;
@@ -43,6 +44,13 @@ public class SuperHeroesBoundary {
 
     @Query public String realName(@Source SuperHero superHero) {
         return repository.realNameOf(superHero.getName());
+    }
+
+    @Query public String currentLocation(@Source SuperHero hero) throws GraphQLException {
+        if (hero.getSuperPowers().contains("Location-Blocking")) {
+            throw new GraphQLException("Unable to determine location for " + hero.getName());
+        }
+        return repository.getCurrentLocationOfHero(hero);
     }
 
     @Mutation public SuperHero createNewHero(SuperHero newHero) {

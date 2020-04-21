@@ -25,6 +25,7 @@ import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static org.superheroes.config.CollectionUtils.single;
+import static org.superheroes.hero.ShieldClearance.Level.INTERNAL;
 import static org.superheroes.hero.ShieldClearance.Level.SECRET;
 import static org.superheroes.hero.ShieldClearance.Level.TOP_SECRET;
 
@@ -35,8 +36,9 @@ public class Repository {
     private List<Team> teams;
     private Map<String, List<Team>> teamAffiliations;
     private Map<String, String> realNames;
+    private Map<String, String> currentLocations;
 
-    @Inject ShieldClearance requestClearance;
+    @Inject ShieldClearance clearance;
 
     @PostConstruct private void init() {
         Type superheroListType = new ArrayList<SuperHeroData>() {}.getClass().getGenericSuperclass();
@@ -44,9 +46,10 @@ public class Repository {
         List<SuperHeroData> data = JSONB.fromJson(stream, superheroListType);
 
         this.heroes = data.stream().map(this::toSuperHero).collect(toList());
+        this.realNames = data.stream().collect(toMap(SuperHeroData::getName, SuperHeroData::getRealName));
+        this.currentLocations = data.stream().collect(toMap(SuperHeroData::getName, SuperHeroData::getCurrentLocation));
         this.teams = allTeams(data);
         this.teamAffiliations = this.heroes.stream().collect(toMap(SuperHero::getName, new TeamCollector(data)::teams));
-        this.realNames = data.stream().collect(toMap(SuperHeroData::getName, SuperHeroData::getRealName));
     }
 
     @Getter @Setter @ToString
@@ -54,6 +57,7 @@ public class Repository {
         private String name;
         private String realName;
         private String primaryLocation;
+        private String currentLocation;
         private List<String> superPowers;
         private List<String> teamAffiliations;
 
@@ -114,7 +118,7 @@ public class Repository {
     }
 
     public Stream<SuperHero> allSuperHeroes() {
-        requestClearance.mustBe(SECRET);
+        clearance.mustBe(SECRET);
         return heroes.stream();
     }
 
@@ -123,8 +127,13 @@ public class Repository {
     }
 
     public String realNameOf(String heroName) {
-        requestClearance.mustBe(TOP_SECRET);
+        clearance.mustBe(TOP_SECRET);
         return realNames.get(heroName);
+    }
+
+    public String getCurrentLocationOfHero(SuperHero hero) {
+        clearance.mustBe(INTERNAL);
+        return currentLocations.get(hero.getName());
     }
 
     public Stream<Team> allTeams() { return teams.stream(); }

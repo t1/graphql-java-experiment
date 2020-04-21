@@ -3,6 +3,7 @@
     "name": "Iron Man",
     "realName": "Tony Stark",
     "primaryLocation": "Los Angeles, CA",
+    "currentLocation": "Los Angeles, CA",
     "superPowers": [
       "wealth",
       "engineering"
@@ -15,6 +16,7 @@
     "name": "Spider Man",
     "realName": "Peter Parker",
     "primaryLocation": "New York, NY",
+    "currentLocation": "New York, NY",
     "superPowers": [
       "Spidey Sense",
       "Wall-Crawling",
@@ -29,6 +31,7 @@
     "name": "Starlord",
     "realName": "Peter Quill",
     "primaryLocation": "Outer Space",
+    "currentLocation": "Los Angeles, CA",
     "superPowers": [
       "Ingenuity",
       "Humor",
@@ -42,7 +45,9 @@
     "name": "Wolverine",
     "realName": "James Howlett, aka Logan",
     "primaryLocation": "Unknown",
+    "currentLocation": "Unknown",
     "superPowers": [
+      "Location-Blocking",
       "Regeneritive Healing",
       "Enhanced Reflexes",
       "Adamantium-infused skeleton",
