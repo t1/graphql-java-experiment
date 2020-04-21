@@ -20,6 +20,7 @@ import static org.assertj.core.api.BDDAssertions.then;
 public class SuperHeroesIT {
 
     private final SuperHeroesApi api = GraphQlClientBuilder.newBuilder()
+        .header("S.H.I.E.L.D.-Clearance", "TOP_SECRET")
         .build(SuperHeroesApi.class);
 
     public interface SuperHeroesApi {

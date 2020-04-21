@@ -5,10 +5,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.superheroes.hero.ShieldClearance;
 import org.superheroes.hero.SuperHero;
 import org.superheroes.team.Team;
 
 import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 import java.io.InputStream;
@@ -23,6 +25,8 @@ import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static org.superheroes.config.CollectionUtils.single;
+import static org.superheroes.hero.ShieldClearance.Level.SECRET;
+import static org.superheroes.hero.ShieldClearance.Level.TOP_SECRET;
 
 @Slf4j
 public class Repository {
@@ -31,6 +35,8 @@ public class Repository {
     private List<Team> teams;
     private Map<String, List<Team>> teamAffiliations;
     private Map<String, String> realNames;
+
+    @Inject ShieldClearance requestClearance;
 
     @PostConstruct private void init() {
         Type superheroListType = new ArrayList<SuperHeroData>() {}.getClass().getGenericSuperclass();
@@ -107,13 +113,19 @@ public class Repository {
         }
     }
 
-    public Stream<SuperHero> allSuperHeroes() { return heroes.stream(); }
+    public Stream<SuperHero> allSuperHeroes() {
+        requestClearance.mustBe(SECRET);
+        return heroes.stream();
+    }
 
     public List<SuperHero> superHeroesWith(Predicate<SuperHero> predicate) {
         return allSuperHeroes().filter(predicate).collect(toList());
     }
 
-    public String realNameOf(String heroName) { return realNames.get(heroName); }
+    public String realNameOf(String heroName) {
+        requestClearance.mustBe(TOP_SECRET);
+        return realNames.get(heroName);
+    }
 
     public Stream<Team> allTeams() { return teams.stream(); }
 

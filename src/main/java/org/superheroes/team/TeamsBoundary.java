@@ -19,14 +19,25 @@ import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 import static org.superheroes.config.CollectionUtils.single;
+import static org.superheroes.team.TeamsBoundary.Clearance.SECRET;
+import static org.superheroes.team.TeamsBoundary.Clearance.TOP_SECRET;
 
 @Stateless
 @GraphQLApi
 public class TeamsBoundary {
     @Inject Repository repository;
 
-    @Produces @RequestScoped public GraphQlClientHeader authorization() {
-        return new GraphQlClientHeader("S.H.I.E.L.D.-Clearance", "TOP-SECRET");
+    @SuppressWarnings("unused")
+    public enum Clearance {
+        PUBLIC, INTERNAL, SECRET, TOP_SECRET
+    }
+
+    @Produces @RequestScoped public GraphQlClientHeader clearance() {
+        return new GraphQlClientHeader("S.H.I.E.L.D.-Clearance", this::establishShieldClearance);
+    }
+
+    private Clearance establishShieldClearance() {
+        return SECRET;
     }
 
     @GraphQlClientApi
