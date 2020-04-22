@@ -32,7 +32,7 @@ public class SuperHeroesIT {
         .build(SuperHeroesApi.class);
 
     public interface SuperHeroesApi {
-        List<SuperHero> allHeroesIn(String location);
+        List<SuperHero> heroesIn(String location);
 
         SuperHero findHeroByName(String name);
 
@@ -46,11 +46,11 @@ public class SuperHeroesIT {
         SuperHeroWithLocation findHeroWithLocationByName(String name);
 
         @SuppressWarnings("UnusedReturnValue")
-        SuperHeroWithLocation allHeroes();
+        SuperHeroWithLocation heroes();
 
         Team team(String name);
 
-        List<Team> allTeams();
+        List<Team> teams();
 
         @Mutation("createNewHero") SuperHero add(SuperHero newHero);
     }
@@ -83,7 +83,7 @@ public class SuperHeroesIT {
     @Getter @Setter @ToString
     public static class Team {
         private String name;
-        private List<SuperHero> members;
+        private List<SuperHero> heroes;
     }
 
     @Getter @Setter @ToString
@@ -129,7 +129,7 @@ public class SuperHeroesIT {
     }
 
     @Test void shouldFailToLocateAllHeroes() {
-        GraphQlClientException thrown = catchThrowableOfType(api::allHeroes, GraphQlClientException.class);
+        GraphQlClientException thrown = catchThrowableOfType(api::heroes, GraphQlClientException.class);
 
         then(thrown).hasMessageContaining("Unable to determine location for Wolverine");
         // then(thrown.getData()). somehow contains(
@@ -150,10 +150,10 @@ public class SuperHeroesIT {
     }
 
     @Test void shouldGetAllTeams() {
-        List<Team> all = api.allTeams();
+        List<Team> teams = api.teams();
 
-        then(all.size()).isEqualTo(3);
-        thenIsAvengers(all.get(0));
+        then(teams.size()).isEqualTo(3);
+        thenIsAvengers(teams.get(0));
     }
 
     @Test void shouldGetTeamByName() {
@@ -164,12 +164,12 @@ public class SuperHeroesIT {
 
     private void thenIsAvengers(Team avengers) {
         then(avengers.name).isEqualTo("Avengers");
-        then(avengers.members).hasSize(3);
-        then(avengers.members.get(0).name).isEqualTo("Iron Man");
+        then(avengers.heroes).hasSize(3);
+        then(avengers.heroes.get(0).name).isEqualTo("Iron Man");
     }
 
     @Test void shouldGetSuperHeroesInOuterSpace() {
-        List<SuperHero> found = api.allHeroesIn("Outer Space");
+        List<SuperHero> found = api.heroesIn("Outer Space");
 
         then(found.size()).isEqualTo(1);
         then(found.get(0).name).isEqualTo("Starlord");

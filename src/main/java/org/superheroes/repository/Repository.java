@@ -48,7 +48,7 @@ public class Repository {
         this.heroes = data.stream().map(this::toSuperHero).collect(toList());
         this.realNames = data.stream().collect(toMap(SuperHeroData::getName, SuperHeroData::getRealName));
         this.currentLocations = data.stream().collect(toMap(SuperHeroData::getName, SuperHeroData::getCurrentLocation));
-        this.teams = allTeams(data);
+        this.teams = teams(data);
         this.teamAffiliations = this.heroes.stream().collect(toMap(SuperHero::getName, new TeamCollector(data)::teams));
     }
 
@@ -64,7 +64,7 @@ public class Repository {
         public Stream<String> teamAffiliations() { return teamAffiliations.stream(); }
     }
 
-    private List<Team> allTeams(List<SuperHeroData> data) {
+    private List<Team> teams(List<SuperHeroData> data) {
         return data.stream()
             .flatMap(SuperHeroData::teamAffiliations)
             .distinct()
@@ -117,13 +117,13 @@ public class Repository {
         }
     }
 
-    public Stream<SuperHero> allSuperHeroes() {
+    public Stream<SuperHero> superHeroes() {
         clearance.mustBe(SECRET);
         return heroes.stream();
     }
 
     public List<SuperHero> superHeroesWith(Predicate<SuperHero> predicate) {
-        return allSuperHeroes().filter(predicate).collect(toList());
+        return superHeroes().filter(predicate).collect(toList());
     }
 
     public String realNameOf(String heroName) {
@@ -136,10 +136,10 @@ public class Repository {
         return currentLocations.get(hero.getName());
     }
 
-    public Stream<Team> allTeams() { return teams.stream(); }
+    public Stream<Team> teams() { return teams.stream(); }
 
     public List<Team> teamsWith(Predicate<Team> predicate) {
-        return allTeams().filter(predicate).collect(toList());
+        return teams().filter(predicate).collect(toList());
     }
 
     public List<Team> getTeamAffiliations(String superHeroName) {

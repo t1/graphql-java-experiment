@@ -25,15 +25,15 @@ public class SuperHeroesBoundary {
     @Inject Repository repository;
 
     @Description("returns all heroes")
-    @Query public List<SuperHero> allHeroes() {
-        return repository.allSuperHeroes().collect(toList());
+    @Query public List<SuperHero> heroes() {
+        return repository.superHeroes().collect(toList());
     }
 
-    @Query public List<SuperHero> allHeroesIn(String location) {
+    @Query public List<SuperHero> heroesIn(String location) {
         return repository.superHeroesWith(hero -> location.equals(hero.getPrimaryLocation()));
     }
 
-    @Query public List<SuperHero> allHeroesWithPower(String power) {
+    @Query public List<SuperHero> heroesWithPower(String power) {
         return repository.superHeroesWith(hero -> hero.getSuperPowers().contains(power));
     }
 

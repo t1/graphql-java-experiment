@@ -20,7 +20,6 @@ import java.util.List;
 import static java.util.stream.Collectors.toList;
 import static org.superheroes.config.CollectionUtils.single;
 import static org.superheroes.team.TeamsBoundary.Clearance.SECRET;
-import static org.superheroes.team.TeamsBoundary.Clearance.TOP_SECRET;
 
 @Stateless
 @GraphQLApi
@@ -42,7 +41,7 @@ public class TeamsBoundary {
 
     @GraphQlClientApi
     public interface SuperHeroesApi {
-        List<NamedHero> allHeroes();
+        List<NamedHero> heroes();
     }
 
     @Getter @Setter @ToString public static class NamedHero {
@@ -57,17 +56,17 @@ public class TeamsBoundary {
         return single(teams, "team named " + name);
     }
 
-    @Query public List<Team> allTeams() {
-        return repository.allTeams().collect(toList());
+    @Query public List<Team> teams() {
+        return repository.teams().collect(toList());
     }
 
     @Query public int size(@Source Team team) {
-        return members(team).size();
+        return heroes(team).size();
     }
 
-    @Query public List<NamedHero> members(@Source Team team) {
-        List<NamedHero> allHeroes = superHeroesApi.allHeroes();
-        return allHeroes.stream()
+    @Query public List<NamedHero> heroes(@Source Team team) {
+        List<NamedHero> heroes = superHeroesApi.heroes();
+        return heroes.stream()
             .filter(hero -> teamAffiliationNames(hero).contains(team.getName()))
             .collect(toList());
     }
