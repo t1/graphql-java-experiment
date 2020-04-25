@@ -7,7 +7,7 @@ import org.eclipse.microprofile.graphql.GraphQLException;
 import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Query;
 import org.eclipse.microprofile.graphql.Source;
-import org.eclipse.microprofile.metrics.annotation.Timed;
+import org.superheroes.config.Resolver;
 import org.superheroes.repository.Repository;
 
 import javax.ejb.Stateless;
@@ -20,7 +20,6 @@ import static org.superheroes.config.CollectionUtils.single;
 @Slf4j
 @Stateless
 @GraphQLApi
-@Timed
 public class SuperHeroesBoundary {
     @Inject Repository repository;
 
@@ -42,11 +41,11 @@ public class SuperHeroesBoundary {
         return single(heroes, "hero named " + name);
     }
 
-    @Query public String realName(@Source SuperHero superHero) {
+    @Resolver public String realName(@Source SuperHero superHero) {
         return repository.realNameOf(superHero.getName());
     }
 
-    @Query public String currentLocation(@Source SuperHero hero) throws GraphQLException {
+    @Resolver public String currentLocation(@Source SuperHero hero) throws GraphQLException {
         if (hero.getSuperPowers().contains("Location-Blocking")) {
             throw new GraphQLException("Unable to determine location for " + hero.getName());
         }

@@ -8,6 +8,7 @@ import lombok.ToString;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
 import org.eclipse.microprofile.graphql.Source;
+import org.superheroes.config.Resolver;
 import org.superheroes.hero.SuperHero;
 import org.superheroes.repository.Repository;
 
@@ -60,11 +61,11 @@ public class TeamsBoundary {
         return repository.teams().collect(toList());
     }
 
-    @Query public int size(@Source Team team) {
+    @Resolver public int size(@Source Team team) {
         return heroes(team).size();
     }
 
-    @Query public List<NamedHero> heroes(@Source Team team) {
+    @Resolver public List<NamedHero> heroes(@Source Team team) {
         List<NamedHero> heroes = superHeroesApi.heroes();
         return heroes.stream()
             .filter(hero -> teamAffiliationNames(hero).contains(team.getName()))
@@ -75,7 +76,7 @@ public class TeamsBoundary {
         return repository.getTeamAffiliations(hero.getName()).stream().map(Team::getName).collect(toList());
     }
 
-    @Query public List<Team> teamAffiliations(@Source SuperHero superHero) {
+    @Resolver public List<Team> teamAffiliations(@Source SuperHero superHero) {
         return repository.getTeamAffiliations(superHero.getName());
     }
 }
