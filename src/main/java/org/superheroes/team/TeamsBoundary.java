@@ -1,7 +1,7 @@
 package org.superheroes.team;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientHeader;
+import io.smallrye.graphql.client.typesafe.api.Header;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -13,8 +13,6 @@ import org.superheroes.hero.SuperHero;
 import org.superheroes.repository.Repository;
 
 import javax.ejb.Stateless;
-import javax.enterprise.context.RequestScoped;
-import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import java.util.List;
 
@@ -27,22 +25,18 @@ import static org.superheroes.team.TeamsBoundary.Clearance.SECRET;
 public class TeamsBoundary {
     @Inject Repository repository;
 
+    @GraphQlClientApi
+    @Header(name = "S.H.I.E.L.D.-Clearance", method = "establishShieldClearance")
+    public interface SuperHeroesApi {
+        List<NamedHero> heroes();
+    }
+
+    @SuppressWarnings("unused")
+    public static Clearance establishShieldClearance() { return SECRET; }
+
     @SuppressWarnings("unused")
     public enum Clearance {
         PUBLIC, INTERNAL, SECRET, TOP_SECRET
-    }
-
-    @Produces @RequestScoped public GraphQlClientHeader clearance() {
-        return new GraphQlClientHeader("S.H.I.E.L.D.-Clearance", this::establishShieldClearance);
-    }
-
-    private Clearance establishShieldClearance() {
-        return SECRET;
-    }
-
-    @GraphQlClientApi
-    public interface SuperHeroesApi {
-        List<NamedHero> heroes();
     }
 
     @Getter @Setter @ToString public static class NamedHero {

@@ -2,7 +2,7 @@ package it;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientBuilder;
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientHeader;
+import io.smallrye.graphql.client.typesafe.api.Header;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,13 +24,14 @@ import static org.superheroes.hero.ShieldClearance.Level.SECRET;
 import static org.superheroes.hero.ShieldClearance.Level.TOP_SECRET;
 
 public class SuperHeroesIT {
+    @SuppressWarnings("unused")
+    public static ShieldClearance.Level clearance() { return clearance; }
 
-    private ShieldClearance.Level clearance = TOP_SECRET;
+    private static ShieldClearance.Level clearance = TOP_SECRET;
 
-    private final SuperHeroesApi api = GraphQlClientBuilder.newBuilder()
-        .header(new GraphQlClientHeader("S.H.I.E.L.D.-Clearance", () -> clearance))
-        .build(SuperHeroesApi.class);
+    private final SuperHeroesApi api = GraphQlClientBuilder.newBuilder().build(SuperHeroesApi.class);
 
+    @Header(name = "S.H.I.E.L.D.-Clearance", method = "clearance")
     public interface SuperHeroesApi {
         List<SuperHero> heroesIn(String location);
 
