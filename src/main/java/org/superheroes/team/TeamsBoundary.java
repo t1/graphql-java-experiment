@@ -1,7 +1,6 @@
 package org.superheroes.team;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
-import io.smallrye.graphql.client.typesafe.api.Header;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -20,13 +19,15 @@ import static java.util.stream.Collectors.toList;
 import static org.superheroes.config.CollectionUtils.single;
 import static org.superheroes.team.TeamsBoundary.Clearance.SECRET;
 
+// import io.smallrye.graphql.client.typesafe.api.Header;
+
 @Stateless
 @GraphQLApi
 public class TeamsBoundary {
     @Inject Repository repository;
 
     @GraphQlClientApi
-    @Header(name = "S.H.I.E.L.D.-Clearance", method = "establishShieldClearance")
+    // @Header(name = "S.H.I.E.L.D.-Clearance", method = "establishShieldClearance")
     public interface SuperHeroesApi {
         List<NamedHero> heroes();
     }

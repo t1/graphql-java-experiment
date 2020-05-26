@@ -12,6 +12,10 @@ import org.superheroes.repository.Repository;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.validation.Valid;
+import javax.validation.constraints.Size;
+import javax.validation.groups.ConvertGroup;
+import javax.validation.groups.Default;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
@@ -28,7 +32,7 @@ public class SuperHeroesBoundary {
         return repository.superHeroes().collect(toList());
     }
 
-    @Query public List<SuperHero> heroesIn(String location) {
+    @Query public List<SuperHero> heroesIn(@Valid @Size(min = 3, max = 256) String location) {
         return repository.superHeroesWith(hero -> location.equals(hero.getPrimaryLocation()));
     }
 
@@ -36,7 +40,7 @@ public class SuperHeroesBoundary {
         return repository.superHeroesWith(hero -> hero.getSuperPowers().contains(power));
     }
 
-    @Query public SuperHero findHeroByName(String name) {
+    @Query public SuperHero findHeroByName(@Valid @SuperHeroName String name) {
         List<SuperHero> heroes = repository.superHeroesWith(hero -> hero.getName().equals(name));
         return single(heroes, "hero named " + name);
     }
@@ -52,12 +56,14 @@ public class SuperHeroesBoundary {
         return repository.getCurrentLocationOfHero(hero);
     }
 
-    @Mutation public SuperHero createNewHero(SuperHero newHero) {
+    @Mutation public SuperHero createNewHero(@Valid @ConvertGroup(to = SupersDefault.class) SuperHero newHero) {
         repository.addHero(newHero);
         return findHeroByName(newHero.getName());
     }
 
-    @Mutation public SuperHero removeHeroByName(String name) {
+    private interface SupersDefault extends Supers, Default {}
+
+    @Mutation public SuperHero removeHeroByName(@Valid @SuperHeroName String name) {
         return repository.removeHeroByName(name);
     }
 
